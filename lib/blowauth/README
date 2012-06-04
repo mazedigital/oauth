@@ -1,0 +1,22 @@
+BlowAuth is an OAuth 1.0 consumer library, brought to you by PandaWhale, Inc.
+It's written in PHP and has no non-standard dependencies.
+
+DOCUMENTATION will give you some general info on how this library works.
+LICENSE is our copy of the BSD license, under the auspices of which BlowAuth
+is operating!
+
+The examples/ directory has some sample code for using/integrating BlowAuth.
+
+Why BlowAuth?
+====================
+There some well-known OAuth implementations that are already available, but we
+wanted to make one which focused mainly on implementing the OAuth spec itself,
+without any assumptions about the platform. We want to keep the core library
+focused on handling only the construction of OAuth requests, and add support
+for particular platforms via child classes. The project is very young, but it
+looks like OAuth is here to stay, and we want to give developers a general-
+purpose tool for integrating with any and every OAuth provider out there!
+
+
+(c) PandaWhale, Inc. 2011
+All rights reserved.
