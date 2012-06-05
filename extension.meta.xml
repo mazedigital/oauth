@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="oauth" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+<extension id="oauth" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>OAuth</name>
 	<description>Allow Users to use oAuth as a Login System and provide data-sources for login and data-retrieval. Support is currently limited for the main providers</description>
+	<repo type="github">https://github.com/jonmifsud/oauth</repo>
+	<url type="homepage">http://jonmifsud.com</url>
 	<types>
 		<type>Third Party Integration</type>
 	</types>
 	<authors>
 		<author>
-			<name github="jonmifsud" symphony="gunglien">Jonathan Mifsud</name>
+			<name github="jonmifsud" twitter="jonmifsud" symphony="gunglien">Jonathan Mifsud</name>
+			<email>info@jonmifsud.com</email>
+			<website>http://jonmifsud.com</website>
 		</author>
 	</authors>
 	<releases>

@@ -1,6 +1,6 @@
 # OAuth
 
-* Version: 0.1.0
+* Version: 0.1.2
 * Author: Jon Mifsud <http://jonmifsud.com>
 * Build Date: 2012-06-04
 * Requirements: Symphony 2.3
@@ -27,12 +27,25 @@ When Verified the XML Element would have two parameters `logged-in` reading `yes
 If you would like to use data from these social networks - you are free to create datasource of type 'oAuth Remote Datasource', 
 these allow you to specify the Provider you want to use, the path to pass to the oAuth request and the xPath of the output that you want visible in your XML
 
+## Important
+
+Note that currently the event has to be attached to an actual page - at the moment this has to be `authorize` = available through `http://yoursite.com/authorize` and
+must also have a url parameter named `source`. Whilst this is mandatory for now - the plan is to move this into preferences allowing the user to specify. Note that this
+is still in experimental stage and might not work 100% as exptected.
+
+## Known Bugs
+
+1. Currently there is an issue with logging out of Users. The session seems to not expire. This should be fixed soon along anything else that might be noticed.
+
+2. Currently oAuth only supports the use of secondary logins when there is already a Main Provider (to augment data/logins) in the future might offer the option 
+to login with any system and still consider the user to have a valid login.
+
 ## Roadmap
 
 Support Additional oAuth Providers as well as events to push data and a tutorial how to create custom events/datasources using oAuth Libraries provided along this extension
 
 ## Version History
 
-### 0.1.0
+### 0.1.2
 
 * initial release of this extension

@@ -65,7 +65,6 @@
 				$token = $cookie->get('token');
 				$cookie->expire();
 				
-				
 				// $request_token_credentials = $cookie->get('token');
 				// var_dump($token);die;
 
