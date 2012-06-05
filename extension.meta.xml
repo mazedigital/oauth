@@ -3,6 +3,7 @@
 	<name>OAuth</name>
 	<description>Allow Users to use oAuth as a Login System and provide data-sources for login and data-retrieval. Support is currently limited for the main providers</description>
 	<repo type="github">https://github.com/jonmifsud/oauth</repo>
+	<url type="discuss">http://symphony-cms.com/discuss/thread/88912/</url>
 	<url type="homepage">http://jonmifsud.com</url>
 	<types>
 		<type>Third Party Integration</type>
