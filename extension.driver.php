@@ -248,9 +248,8 @@
 		
 		public function frontendPageResolved($context) {
 			if(isset($_REQUEST['oauth-action']) && isset($_REQUEST['oauth-action']) == 'logout'){
-				$cookie = new Cookie('oauth');
+				$cookie = new Cookie('oAuth',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
 	            $cookie->expire();
-				// var_dump($cookie);die;
 				if(isset($_REQUEST['redirect'])) redirect($_REQUEST['redirect']);
 				redirect(URL);
 			}

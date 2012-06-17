@@ -36,14 +36,14 @@ require_once("BlowAuth.php");
 
 class oAuthv2 extends BlowAuth
 {
-    public static $oauth_version = '2.0';
+	public static $oauth_version = '2.0';
 
 	/*Do Not think this is required*/
-    public function getRequestToken($oauth_callback = null){
-    }
+	public function getRequestToken($oauth_callback = null){
+	}
 
 	/*This is the V2 Access Token Function*/
-    public function getAccessToken($code,$redirectUri){
+	public function getAccessToken($code,$redirectUri){
 		// Code should be passed to this function and is obtained from the data passed from the server
 		// $code = $_REQUEST['code'];
 		
@@ -54,7 +54,7 @@ class oAuthv2 extends BlowAuth
 		
 		// var_dump($url . '?' . $queryParams);die;
 		// oAuth 2.0 uses get
-        if(function_exists('http_get')) {
+		if(function_exists('http_get')) {
 			$result = http_get($url. '?' . $queryParams);
 			$result = http_parse_message($result);
 			$result = $result->body;
@@ -92,12 +92,12 @@ class oAuthv2 extends BlowAuth
 		// var_dump($token);die;
 		// var_dump($url . '?' . $queryParams);die;
 
-        return $token;
-    }
+		return $token;
+	}
 
 	/*Function Not Used for v2 */
 	public function request($api_method, &$ch = NULL,  $http_method = 'GET', $extra_params = array(), $POST_body = ''){
-        $request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}";
+		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}";
 		
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
@@ -120,39 +120,40 @@ class oAuthv2 extends BlowAuth
 			exit();
 		}
 		return $result;
-        // return $this->makeOAuthRequest($request_url, $http_method, $extra_params, $POST_body);
-    }
+		// return $this->makeOAuthRequest($request_url, $http_method, $extra_params, $POST_body);
+	}
 	
 	/*Function Not Used for v2 */
-    protected function makeOAuthRequest($url, $method, $extra_params = array(), $POST_body = ''){
-        
-    }
+	protected function makeOAuthRequest($url, $method, $extra_params = array(), $POST_body = ''){
+		
+	}
 
 	/*Function Not Used for v2 */
-    protected function getOAuthNonce(){
-    }
+	protected function getOAuthNonce(){
+	}
 
-    protected function getOAuthTimestamp(){
-        return time();
-    }
+	protected function getOAuthTimestamp(){
+		return time();
+	}
 
 	/*Function Not used for V2 */
-    protected function getOAuthSignature($method, $url, $params){
-    }
+	protected function getOAuthSignature($method, $url, $params){
+	}
 
 	/*Does not Exist in v2 */
-    public function getAuthorizeUrl($credentials){
-        // $query_str = "oauth_token={$credentials['oauth_token']}";
-        // return $this->authorize_url . "?$query_str";
-    }
+	public function getAuthorizeUrl($credentials){
+		// $query_str = "oauth_token={$credentials['oauth_token']}";
+		// return $this->authorize_url . "?$query_str";
+	}
 
 	/*No credentials required for 2.0 so changed with a redirect uri*/
-    public function getAuthenticateUrl($redirectUri){
-        $query_str = "client_id={$this->consumer_key}";
-        $query_str .= "&response_type=code";
-        $query_str .= "&redirect_uri={$redirectUri}";
-        return $this->authenticate_url . "?$query_str";
-    }
+	public function getAuthenticateUrl($redirectUri){
+		$query_str = "client_id={$this->consumer_key}";
+		$query_str .= "&response_type=code";
+		$query_str .= "&redirect_uri={$redirectUri}";
+		// $query_str .= "&scope={$scope}";
+		return $this->authenticate_url . "?$query_str";
+	}
 
 }
 
