@@ -49,25 +49,28 @@ class oAuthv2 extends BlowAuth
 		
 		// $url = 'https://github.com/login/oauth/access_token';
 		$url =$this->access_token_url;
-		$queryParams = 'client_id=' . $this->consumer_key . '&redirect_uri=' . urlencode($redirectUri) . '&client_secret=' . $this->consumer_secret . '&code=' . $code;
+		$queryParams = 'client_id=' . $this->consumer_key . '&redirect_uri=' . /*urlencode($redirectUri)*/($redirectUri) . '&client_secret=' . $this->consumer_secret . '&code=' . $code . '&grant_type=authorization_code';
 		
 		
 		// var_dump($url . '?' . $queryParams);die;
 		// oAuth 2.0 uses get
-		if(function_exists('http_get')) {
+		/*if(function_exists('http_get')) {
 			$result = http_get($url. '?' . $queryParams);
 			$result = http_parse_message($result);
 			$result = $result->body;
 		}
-		else if(function_exists('curl_version')) {
+		else*/ if(function_exists('curl_version')) {
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url . '?' . $queryParams);
+			// curl_setopt($ch, CURLOPT_URL, 'http://hubnet.nationalfield.org/oauth/access_token?client_id=d977b3ac9a4ea26208064c0bdcd3c7a6&redirect_uri=http://eurosouth-hub.local/authorize/nationalfield/&client_secret=4899ae4f959d02c7e1ec102e6f164f97&code=9d342cd409a6f293e96ebf84f9064f43&grant_type=authorization_code');
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json, * /*'));
 			
 			$result = curl_exec($ch);
 			// var_dump (curl_error ($ch));
@@ -78,15 +81,23 @@ class oAuthv2 extends BlowAuth
 			echo 'Failed to post HTTP.';
 			exit();
 		}
+		$token=null;
+		$header=null;
+		$jsonResult = json_decode($result);
+		if ($jsonResult->access_token) return $jsonResult->access_token;		
 		
 		$headers = explode('&',trim($result));
 		foreach($headers as $item) {
+			$input = str_replace('"','',$input);
 			$header = explode('=',$item);
 			if($header[0] == 'access_token') {
 				$token = $header[1];
 				break;
-			}
+			} 
 		}
+		// var_dump($url . '?' . $queryParams);
+		// var_dump($headers);
+		// return ($token);
 		
 		// var_dump($url . '?' . $queryParams);
 		// var_dump($token);die;
@@ -97,7 +108,10 @@ class oAuthv2 extends BlowAuth
 
 	/*Function Not Used for v2 */
 	public function request($api_method, &$ch = NULL,  $http_method = 'GET', $extra_params = array(), $POST_body = ''){
-		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}";
+		$params='';
+		if (isset($extra_params)) $params = '&'. http_build_query($extra_params);
+		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}{$params}";
+		// var_dump($request_url);die;
 		
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
@@ -105,6 +119,7 @@ class oAuthv2 extends BlowAuth
 			curl_setopt($ch, CURLOPT_URL, $request_url);
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);

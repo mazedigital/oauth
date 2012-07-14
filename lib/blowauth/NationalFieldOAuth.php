@@ -33,8 +33,11 @@ require_once("oAuthv2.php");
 
 class NationalFieldOAuth extends oAuthv2 {
 
-	private $_nationalfield_oauth_base_url = 'https://hubnet.nationalfield.org/oauth';
-	private $_nationalfield_api_base_url = 'https://hubnet.nationalfield.org/v1';
+	// private $_nationalfield_oauth_base_url = 'https://hubnet.nationalfield.org/oauth';
+	// private $_nationalfield_api_base_url = 'https://hubnet.nationalfield.org/v1';
+	
+	private $_nationalfield_oauth_base_url = 'http://hubnet.nationalfield.org/oauth';
+	private $_nationalfield_api_base_url = 'http://hubnet.nationalfield.org/api/v1';
 
 	// private $_nationalfield_request_token_uri  = '/requestToken';
 	private $_nationalfield_access_token_uri   = '/access_token';
@@ -58,6 +61,14 @@ class NationalFieldOAuth extends oAuthv2 {
 		$this->access_token_url = $this->_nationalfield_oauth_base_url . $this->_nationalfield_access_token_uri;
 		$this->authenticate_url = $this->_nationalfield_oauth_base_url . $this->_nationalfield_authenticate_uri;
 		// $this->authorize_url = $this->_nationalfield_oauth_base_url . $this->_nationalfield_authorize_uri;
+	}
+	
+	/*NationalField Version*/
+	public function getUserID(){
+		$facebook_json = $this->request('users/me');
+		$facebookDetails = json_decode($facebook_json);
+		// var_dump($facebook_json);die;
+		return (string)$facebookDetails->id;
 	}
 
 }

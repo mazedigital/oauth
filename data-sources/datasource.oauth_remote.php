@@ -469,23 +469,41 @@
 						$accessToken = $oAuthExtension->getAccessToken($this->dsParamSYSTEM);
 						$token = $accessToken;
 						$token_secret = null;
-						if (is_array($accessToken)){
+						if (is_array($accessToken) && $this->dsParamSYSTEM=='linkedin'){
 							$token_secret = $accessToken['token_secret'];
 							$token = $accessToken['token'];
+						} else
+						if (is_array($accessToken) && $this->dsParamSYSTEM=='twitter'){
+							$token_secret = $accessToken['oauth_token_secret'];
+							$token = $accessToken['oauth_token'];
 						} 
 						
 						$oAuthClassname= $oAuthExtension->supportedOAuth[$this->dsParamSYSTEM] .'OAuth';
+						$oAuthName = $this->dsParamSYSTEM;
 						require_once(EXTENSIONS . "/oauth/lib/blowauth/{$oAuthClassname}.php");
 										
 						$clientId = Symphony::Configuration()->get('client_id', $oAuthName . 'oauth');
 						$secret = Symphony::Configuration()->get('secret', $oAuthName . 'oauth');
 						
-						$oauth = new $oAuthClassname($clientId, $secret, $token, $token_secret); 
+						$oauth = new $oAuthClassname($clientId, $secret, $token, $token_secret);
+						// var_dump($clientId);var_dump($secret);var_dump($token);var_dump($token_secret);die;
 						$ch = curl_init();
 						//we want to handle 400 errors ourselves and parse any expired tokens
 						curl_setopt($ch, CURLOPT_FAILONERROR, false);
 						curl_setopt($ch, CURLOPT_HTTP200ALIASES, (array)400);
-						$data = $oauth->request($this->dsParamPATH,$ch);
+						curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+						
+						//extract url params out of path
+						$path = explode('?',$this->dsParamPATH);
+						$params = array();
+						if (!empty($path[1])){
+							$parts = explode('&',$path[1]);
+							foreach ($parts as $part){
+								$queryString = explode('=',$part);
+								$params[$queryString[0]]=$queryString[1];
+							}
+						}
+						$data = $oauth->request($path[0],$ch,'GET',$params);
 						//TODO handling of 400 Token Expired errors - to obtain new-token and re-direct to the correct page
 						// var_dump($data);die;
 						/*

@@ -85,7 +85,6 @@
 			} else {
 				$oauth = new $oAuthClassname($clientId, $secret, $oauth_token, $oauth_token_secret); 
 				$access_token_credentials = $oauth->getAccessToken($params['url-code'],$params['current-url'] . '/');
-				
 				$oauth_token = $access_token_credentials;
 				$oauth_token_secret = null;
 			}
@@ -99,8 +98,9 @@
 				$oauth = new $oAuthClassname($clientId, $secret, $oauth_token, $oauth_token_secret); 
 				// var_dump($access_token_credentials);die;
 				$userid;
-				if ($access_token_credentials['user_id']){
+				if (is_array($access_token_credentials) && isset($access_token_credentials['user_id'])){
 					$userid = $access_token_credentials['user_id'];
+					// var_dump('array');
 				} else	$userid = $oauth->getUserID();
 				$cookie->set('userid',$userid);
 				// var_dump($userid);die;
