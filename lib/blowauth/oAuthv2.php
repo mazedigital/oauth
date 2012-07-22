@@ -109,13 +109,24 @@ class oAuthv2 extends BlowAuth
 	/*Function Not Used for v2 */
 	public function request($api_method, &$ch = NULL,  $http_method = 'GET', $extra_params = array(), $POST_body = ''){
 		$params='';
-		if (isset($extra_params)) $params = '&'. http_build_query($extra_params);
-		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}{$params}";
+		if (isset($extra_params)) $params = http_build_query($extra_params);
+		
+		//remove any '/' prior to method to avioid redirects
+		if (strpos($api_method,'/')==0){
+			$api_method = substr($api_method,1);
+		}
+		
+		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}"; 
+		if ($http_method == 'GET') $request_url .= '&'. $params;
 		// var_dump($request_url);die;
 		
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
 				$ch = curl_init();
+			if ($http_method == 'POST'){
+				curl_setopt($ch,CURLOPT_POST,1);
+				curl_setopt($ch,CURLOPT_POSTFIELDS,$params);
+			}
 			curl_setopt($ch, CURLOPT_URL, $request_url);
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -124,11 +135,12 @@ class oAuthv2 extends BlowAuth
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
-			
+			// curl_setopt ($ch, CURLINFO_HEADER_OUT, TRUE); 
 			$result = curl_exec($ch);
+			// if ($http_method == 'POST'){
+				// var_dump(curl_getinfo($ch, CURLINFO_HEADER_OUT));die;}
 			// var_dump (curl_error ($ch));
 			// curl_close($ch);
-			// var_dump('inhere');
 		}
 		else {
 			echo 'Failed to get HTTP.';
