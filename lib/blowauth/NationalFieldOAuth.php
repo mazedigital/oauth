@@ -36,8 +36,8 @@ class NationalFieldOAuth extends oAuthv2 {
 	// private $_nationalfield_oauth_base_url = 'https://hubnet.nationalfield.org/oauth';
 	// private $_nationalfield_api_base_url = 'https://hubnet.nationalfield.org/v1';
 	
-	private $_nationalfield_oauth_base_url = 'http://hubnet.nationalfield.org/oauth';
-	private $_nationalfield_api_base_url = 'http://hubnet.nationalfield.org/api/v1';
+	private $_nationalfield_oauth_base_url = 'http://hubnet.nationalfield.com/oauth';
+	private $_nationalfield_api_base_url = 'http://hubnet.nationalfield.com/api/v1';
 
 	// private $_nationalfield_request_token_uri  = '/requestToken';
 	private $_nationalfield_access_token_uri   = '/access_token';
