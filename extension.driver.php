@@ -202,7 +202,7 @@
 				$secret = Symphony::Configuration()->get('secret', $oAuthName . 'oauth');
 				
 				$oauth = new $oAuthClassname($clientId, $secret); 
-				$callback = "http://eurosouth-hub.local/authorize/{$oAuthName}/";
+				$callback = Symphony::Engine()->Page()->_param['root'] . "/authorize/{$oAuthName}/";
 				
 				$authenticate_url;
 				//check version of oAuth if V1
