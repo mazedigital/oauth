@@ -120,23 +120,28 @@ class oAuthv2 extends BlowAuth
 		if ($http_method == 'GET') $request_url .= '&'. $params;
 		// var_dump($request_url);die;
 		
+
+		$gateway = new Gateway;
+		$gateway->init($url);
+
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
 				$ch = curl_init();
 			if ($http_method == 'POST'){
-				curl_setopt($ch,CURLOPT_POST,1);
-				curl_setopt($ch,CURLOPT_POSTFIELDS,$params);
+				$gateway->setopt('POST',1);
+				$gateway->setopt('POSTFIELDS',$params);
 			}
 			curl_setopt($ch, CURLOPT_URL, $request_url);
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+			$gateway->setopt('RETURNTRANSFER', TRUE);
+			$gateway->setopt('FOLLOWLOCATION', true); 
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
-			curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+			$gateway->setopt('SSL_VERIFYHOST', 0);
+			$gateway->setopt('SSL_VERIFYPEER', 0); 
 			// curl_setopt ($ch, CURLINFO_HEADER_OUT, TRUE); 
-			$result = curl_exec($ch);
+			$result = $gateway->exec();
+			$info = $gateway->getInfoLast();
 			// if ($http_method == 'POST'){
 				// var_dump(curl_getinfo($ch, CURLINFO_HEADER_OUT));die;}
 			// var_dump (curl_error ($ch));

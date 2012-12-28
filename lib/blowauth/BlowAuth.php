@@ -97,13 +97,14 @@ class BlowAuth
 		return $credentials;
 	}
 
+	//to remove curl from being required
 	public function request($api_method, &$curl = NULL, $http_method = 'GET', $extra_params = array(), $POST_body = '')
 	{
 		$request_url = "{$this->api_base_url}/{$api_method}";
-		return $this->makeOAuthRequest($request_url, $http_method, $extra_params, $POST_body, $curl);
+		return $this->makeOAuthRequest($request_url, $http_method, $extra_params, $POST_body);
 	}
 
-	protected function makeOAuthRequest($url, $method, $extra_params = array(), $POST_body = '', &$ci = NULL)
+	protected function makeOAuthRequest($url, $method, $extra_params = array(), $POST_body = '')
 	{
 		$class = get_class($this);
 		$base_params = array(
@@ -122,8 +123,10 @@ class BlowAuth
 
 		$params['oauth_signature'] = $this->getOAuthSignature($method, $url, $params);
 
-		if (!isset($ci))
-			$ci = curl_init();
+		
+		$gateway = new Gateway;
+		$gateway->init($url);
+
 
 		$auth_header_params_str = '';
 		$rawurlencode = 'rawurlencode';
@@ -140,33 +143,38 @@ class BlowAuth
 		}
 
 		if ($method == 'POST') {
-			curl_setopt($ci, CURLOPT_POST, TRUE);
+
+			$gateway->setopt('POST', TRUE);
+			// curl_setopt($ci, CURLOPT_POST, TRUE);
 			if (!empty($extra_params)) {
-				curl_setopt($ci, CURLOPT_POSTFIELDS, $query_str);
+				$gateway->setopt('POSTFIELDS', $query_str);
 			} else if ($POST_body) {
 				$header_arr[] = 'Content-Type: text/xml';
-				curl_setopt($ci, CURLOPT_POSTFIELDS, $POST_body);
+				$gateway->setopt('POSTFIELDS', $POST_body);
 				// TODO: set CURLOPT_HEADER only in the LinkedIn case.
 				// The meaningful info for these types of requests are in the
 				// response headers, not the response body.
-				curl_setopt($ci, CURLOPT_HEADER, true);
+				
+				$gateway->setopt('HEADER', TRUE);
+				// curl_setopt($ci, CURLOPT_HEADER, true);
 			}
 		} else if ($method == 'GET' && isset($query_str)) {
 			$url .= "?$query_str";
 		}
 
-		curl_setopt($ci, CURLOPT_HTTPHEADER, $header_arr);
-		curl_setopt($ci, CURLOPT_URL, $url);
-		curl_setopt($ci, CURLOPT_TIMEOUT_MS, $this->curl_timeout_ms);
-		curl_setopt($ci, CURLOPT_CONNECTTIMEOUT_MS, $this->curl_connecttimeout_ms);
-		curl_setopt($ci, CURLOPT_RETURNTRANSFER, true);
+		$gateway->setopt('HTTPHEADER', $header_arr);
+		$gateway->setopt('URL', $url);
+		$gateway->setopt('TIMEOUT_MS', $this->curl_timeout_ms);
+		$gateway->setopt('CONNECTTIMEOUT_MS', $this->curl_connecttimeout_ms);
+		$gateway->setopt('RETURNTRANSFER', true);
 		
 		//WARNING: this would prevent curl from detecting a 'man in the middle' attack
-		curl_setopt ($ci, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt ($ci, CURLOPT_SSL_VERIFYPEER, 0); 
+		$gateway->setopt('SSL_VERIFYHOST', 0);
+		$gateway->setopt('SSL_VERIFYPEER', 0); 
 
 
-		$response = curl_exec($ci);
+		$response = $gateway->exec();
+		$info = $gateway->getInfoLast();
 		return $response;
 	}
 
