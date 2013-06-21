@@ -122,7 +122,7 @@ class oAuthv2 extends BlowAuth
 		
 
 		$gateway = new Gateway;
-		$gateway->init($url);
+		$gateway->init($request_url);
 
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
@@ -133,12 +133,12 @@ class oAuthv2 extends BlowAuth
 			}
 			curl_setopt($ch, CURLOPT_URL, $request_url);
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
-			$gateway->setopt('RETURNTRANSFER', TRUE);
-			$gateway->setopt('FOLLOWLOCATION', true); 
+			$gateway->setopt(CURLOPT_RETURNTRANSFER, TRUE);
+			$gateway->setopt(CURLOPT_FOLLOWLOCATION, true); 
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
-			$gateway->setopt('SSL_VERIFYHOST', 0);
-			$gateway->setopt('SSL_VERIFYPEER', 0); 
+			$gateway->setopt(CURLOPT_SSL_VERIFYHOST, 0);
+			$gateway->setopt(CURLOPT_SSL_VERIFYPEER, 0); 
 			// curl_setopt ($ch, CURLINFO_HEADER_OUT, TRUE); 
 			$result = $gateway->exec();
 			$info = $gateway->getInfoLast();
