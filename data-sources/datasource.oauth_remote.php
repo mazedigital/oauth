@@ -184,6 +184,8 @@
 
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
+        	$fieldset->setAttribute('data-context', Lang::createHandle(self::getName()));
+        	
 			$fieldset->appendChild(new XMLElement('legend', self::getName()));
 
 			$group = new XMLElement('div');

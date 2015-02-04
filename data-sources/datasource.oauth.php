@@ -79,6 +79,8 @@
 
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
+        	$fieldset->setAttribute('data-context', Lang::createHandle(self::getName()));
+
 			$fieldset->appendChild(new XMLElement('legend', self::getName()));
 
 			// System to use for oAuth Login
@@ -92,6 +94,7 @@
 					array('linkedin', $settings[self::getClass()]['system'] == 'linkedin', 'LinkedIn'),
 					array('nationalfield', $settings[self::getClass()]['system'] == 'nationalfield', 'NationalField'),
 					array('twitter', $settings[self::getClass()]['system'] == 'twitter', 'Twitter'),
+					array('google', $settings[self::getClass()]['system'] == 'google', 'Google'),
 					array('facebook', $settings[self::getClass()]['system'] == 'facebook', 'Facebook')
 				))
 			);
