@@ -1,0 +1,53 @@
+
+
+<data>
+	<entry>
+		<id>
+			1017452665
+		</id>
+		<birthday>
+			11/06/1989
+		</birthday>
+		<email>
+			gunglien@gmail.com
+		</email>
+		<first-name>
+			Jonathan
+		</first-name>
+		<gender>
+			male
+		</gender>
+		<hometown>
+		<id>
+			106157292755430
+		</id>
+		<name>
+			Qormi, Malta
+		</name>
+		</hometown>
+		<last-name>
+			Mifsud
+		</last-name>
+		<link>
+			https://www.facebook.com/app_scoped_user_id/1017452665/
+		</link>
+		<locale>
+			en_GB
+		</locale>
+		<name>
+			Jonathan Mifsud
+		</name>
+		<timezone>
+			2
+		</timezone>
+		<updated-time>
+			2016-01-24T12:56:11+0000
+		</updated-time>
+		<verified>
+			1
+		</verified>
+		<website>
+			http://jonmifsud.com/
+		</website>
+	</entry>
+</data>

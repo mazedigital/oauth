@@ -1,9 +1,10 @@
 <?php
 
+	require_once EXTENSIONS . '/oauth/lib/member.oauth.php';
 	require_once EXTENSIONS . '/oauth/data-sources/datasource.oauth.php';
 	require_once EXTENSIONS . '/oauth/data-sources/datasource.oauth_remote.php';
 
-    class Extension_OAuth extends Extension {
+	class Extension_OAuth extends Extension {
 		/* Start of Data-source registration */
 		private static $provides = array();
 
@@ -35,59 +36,73 @@
 										'nationalfield' => 'NationalField',
 										'google' => 'Google',
 										'tumblr' => 'Tumblr');
-    
+	
 		/*
 		 * Get the Class name from the list
 		 */
 		public function getClassName($name){
 			return $this->supportedOAuth[$name];
 		}
-    	/*-------------------------------------------------------------------------
-    		Delegate
-    	-------------------------------------------------------------------------*/
-    
-    	public function getSubscribedDelegates() {
-    		return array(
-    			array(
-    				'page' => '/system/preferences/',
-    				'delegate' => 'AddCustomPreferenceFieldsets',
-    				'callback' => 'appendPreferences'
-    			),
-    			array(
-    				'page' => '/system/preferences/',
-    				'delegate' => 'Save',
-    				'callback' => 'savePreferences'
-    			),
-                array(
-                    'page' => '/frontend/',
-                    'delegate' => 'FrontendProcessEvents',
-                    'callback' => 'appendEventXML'
-                ),
+		/*-------------------------------------------------------------------------
+			Delegate
+		-------------------------------------------------------------------------*/
+	
+		public function getSubscribedDelegates() {
+			return array(
 				array(
-                    'page' => '/frontend/',
-                    'delegate' => 'FrontendParamsResolve',
-                    'callback' => 'appendAccessToken'
-                ),
+					'page' => '/frontend/',
+					'delegate' => 'InitialiseMember',
+					'callback' => 'initialiseMember'
+				),
+				array(
+					'page' => '/system/preferences/',
+					'delegate' => 'AddCustomPreferenceFieldsets',
+					'callback' => 'appendPreferences'
+				),
+				array(
+					'page' => '/system/preferences/',
+					'delegate' => 'Save',
+					'callback' => 'savePreferences'
+				),
+				array(
+					'page' => '/frontend/',
+					'delegate' => 'FrontendProcessEvents',
+					'callback' => 'appendEventXML'
+				),
+				array(
+					'page' => '/frontend/',
+					'delegate' => 'FrontendParamsResolve',
+					'callback' => 'appendAccessToken'
+				),
 				array(
 					'page' => '/frontend/',
 					'delegate' => 'FrontendPageResolved',
 					'callback' => 'frontendPageResolved'
 				),
-    		);
-    	}
-    
-    	/*-------------------------------------------------------------------------
-    		Delegated functions
-    	-------------------------------------------------------------------------*/	
-    
-    	public function appendPreferences($context){
-    		$group = new XMLElement('fieldset',null,array('class'=>'settings'));
-    		$group->appendChild(new XMLElement('legend', 'oAuth Authentication'));
-    
-    		// Application Client
-    		$group->appendChild(new XMLElement('h3', 'OAuth Application',array('style'=>'margin-bottom: 5px;')));
-    		$group->appendChild(new XMLElement('p','You need to provide an Application Client ID & Client Secret for every oAuth type. These can be obtained from the respective systems',array('class'=>'help')));
-    		
+				array(
+					'page' => '/publish/',
+					'delegate' => 'EntryPostDelete',
+					'callback' => 'entryPostDelete'
+				),
+			);
+		}
+	
+		/*-------------------------------------------------------------------------
+			Delegated functions
+		-------------------------------------------------------------------------*/	
+
+		public function initialiseMember($context){
+			$context['member'] = $this->Member = new OauthMember;
+		}
+	
+		public function appendPreferences($context){
+			$group = new XMLElement('fieldset',null,array('class'=>'settings'));
+			$group->appendChild(new XMLElement('legend', 'oAuth Authentication'));
+	
+			// Application Client
+			$group->appendChild(new XMLElement('h3', 'OAuth Application',array('style'=>'margin-bottom: 5px;')));
+			$group->appendChild(new XMLElement('p','You need to provide an Application Client ID & Client Secret for every oAuth type. These can be obtained from the respective systems',array('class'=>'help')));
+			
 			//generate array for Main oAuth drop-down
 			$mainOAuth = array();
 			// a blank first entry
@@ -127,18 +142,18 @@
 					$label->setValue(__('Client Scope') . $input->generate());
 					$group->appendChild($label);
 			}
-    
-    		// Append preferences
-    		$context['wrapper']->appendChild($group);
-    	}
-    
+	
+			// Append preferences
+			$context['wrapper']->appendChild($group);
+		}
+	
 		//TODO SET SCOPE IF REQUIRED (comma delimited most likely) + Add FIELD. This was for a prevrious checkbox so savePref might not be required
-    	public function savePreferences($context){
+		public function savePreferences($context){
 			if (!is_null($_REQUEST['settings']['oauth']['scope'])){
 				$scope = implode(',', $_REQUEST['settings']['oauth']['scope']);
 				$context['settings']['oauth']['scope'] = $scope;
 			}
-    	}
+		}
 
 		/*Get Access token of particular System*/
 		public function getAccessToken($system=null) {
@@ -163,7 +178,7 @@
 				$clientId = Symphony::Configuration()->get('client_id', $system . 'oauth');
 				$secret = Symphony::Configuration()->get('secret', $system . 'oauth');
 				$oAuthClassname = $this->supportedOAuth[$system] .'OAuth';
-				require_once("lib/blowauth/{$oAuthClassname}.php");
+				require_once("lib/oauth/{$oAuthClassname}.php");
 				$oauth = new $oAuthClassname($clientId, $secret, $token, null); 
 				// var_dump($access_token_credentials);die;
 				$userid = $oauth->getUserID();
@@ -171,6 +186,12 @@
 				*/
 			}
 			return $token;
+		}
+
+		public function getOAuthStatus(){
+			//TODO check all current active systems
+
+			//return the first valid logged in token if it exists - maybe we need to store the system with the token to speed up ? 
 		}
 		
 		/*This should only be called from front-end events or DS*/
@@ -193,47 +214,69 @@
 				// var_dump($userid);die;
 			} else if($params['current-page']!='authorize'){
 				//The oAuth to be used for main Login Details or from the handle?!
-				$oAuthName = $system;
-				if (!isset($oAuthName)) $oAuthName = Symphony::Configuration()->get('main', 'oauth'); 
-				$oAuthClassname= $this->supportedOAuth[$oAuthName] .'OAuth';
-				require_once("lib/blowauth/{$oAuthClassname}.php");
-								
-				$clientId = Symphony::Configuration()->get('client_id', $oAuthName . 'oauth');
-				$secret = Symphony::Configuration()->get('secret', $oAuthName . 'oauth');
-				
-				$oauth = new $oAuthClassname($clientId, $secret); 
-				$callback = Symphony::Engine()->Page()->_param['root'] . "/authorize/{$oAuthName}/";
-				
-				$authenticate_url;
-				//check version of oAuth if V1
-				if ($oAuthClassname::$oauth_version == '1.0'){
-					// oAuth v1
-					$token = $oauth->getRequestToken($callback);
-					
-					//v1 requires us to save the token a cookie should do - has to be cleared if it is secondary and will be stored in db
-					$cookie = new Cookie($oAuthName . 'oAuth',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
-					$cookie->set('token',$token);
-					$authenticate_url = $oauth->getAuthenticateURL($token);
-				}else {
-					// oAuth v2
-					$authenticate_url = $oauth->getAuthenticateURL($callback);
-				}
-				
+				// $oAuthName = $system;
+
+				// if (!isset($oAuthName)) $oAuthName = Symphony::Configuration()->get('main', 'oauth'); 
+
+				// if (!isset($oAuthName)){
+					foreach ($this->supportedOAuth as $oAuthName => $classPrefix) {
+						$this->getOAuthAuthenticateURL($oAuthName, $result);
+					}
+				// }
 				
 				$result->setAttribute('logged-in','no');
-				$result->appendChild(new XMLElement('url',General::sanitize($authenticate_url)));
 			}
 
 		}
-        
-        public function appendEventXML(array $context = null) {
-            $result = new XMLElement('oauth');
+		
+		public function getOAuthAuthenticateURL($oAuthName, &$result) {
+							
+			$clientId = Symphony::Configuration()->get('client_id', $oAuthName . 'oauth');
+			$secret = Symphony::Configuration()->get('secret', $oAuthName . 'oauth');
+
+			if (!isset($clientId) && !isset($secret)){
+				return;
+			}
+
+			$oAuthClassname= $this->supportedOAuth[$oAuthName] .'OAuth';
+			require_once("lib/oauth/{$oAuthClassname}.php");
+			
+			$oauth = new $oAuthClassname($clientId, $secret); 
+			$callback = Symphony::Engine()->Page()->_param['root'] . "/authorize/{$oAuthName}/";
+			
+			$authenticate_url;
+			//check version of oAuth if V1
+			if ($oAuthClassname::$oauth_version == '1.0'){
+				// oAuth v1
+				$token = $oauth->getRequestToken($callback);
+				$token = $oauth->getRequestToken($callback.'signup/');
+				
+				//v1 requires us to save the token a cookie should do - has to be cleared if it is secondary and will be stored in db
+				$cookie = new Cookie($oAuthName . 'oAuth',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
+				$cookie->set('token',$token);
+				$authenticate_url = $oauth->getAuthenticateURL($token);
+				$signup_authenticate_url = $authenticate_url;
+			}else {
+				// oAuth v2
+				$authenticate_url = $oauth->getAuthenticateURL($callback,Symphony::Configuration()->get('scope', $oAuthName . 'oauth'));
+				$signup_authenticate_url = $oauth->getAuthenticateURL($callback.'signup/',Symphony::Configuration()->get('scope', $oAuthName . 'oauth'));
+			}
+
+			$main = (Symphony::Configuration()->get('main', 'oauth') == $oAuthName) ? 'yes' : 'no';
+
+			$result->appendChild(new XMLElement($oAuthName,null,array('url'=>General::sanitize($authenticate_url),'signup-url'=>General::sanitize($signup_authenticate_url),'main'=> $main )));
+		}
+
+
+
+		public function appendEventXML(array $context = null) {
+			$result = new XMLElement('oauth');
 			
 			$main = Symphony::Configuration()->get('main', 'oauth');
 			$this->oAuthStatus($main,$result);
 			
 			$context['wrapper']->appendChild($result);
-        }
+		}
 
 		/*TODO consider changing this - which tokens do we really  need to output to the context?? - Maybe Events should handle outputting of tokens accordingly*/
 		public function appendAccessToken($context) {
@@ -249,12 +292,18 @@
 		public function frontendPageResolved($context) {
 			if(isset($_REQUEST['oauth-action']) && isset($_REQUEST['oauth-action']) == 'logout'){
 				$cookie = new Cookie('oAuth',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
-	            $cookie->expire();
+				$cookie->expire();
 				if(isset($_REQUEST['redirect'])) redirect($_REQUEST['redirect']);
 				redirect(URL);
 			}
 		}
 		
+		public function entryPostDelete($context){
+			$deleted = implode(',', $context['entry_id']);
+
+			Symphony::Database()->delete('tbl_oauth_token', "`member_id` IN ({$deleted})");
+		}
+
 		
 		/**
 		 * Installation
@@ -262,6 +311,7 @@
 		public function install()	{
 			// A table to keep track of user tokens in relation to the current current user id
 			Symphony::Database()->query("CREATE TABLE IF NOT EXISTS `tbl_oauth_token` (
+				`member_id` VARCHAR(255) NOT NULL ,
 				`user_id` VARCHAR(255) NOT NULL ,
 				`system` VARCHAR(30) NOT NULL ,
 				`token` VARCHAR(255) NOT NULL ,
@@ -288,6 +338,6 @@
 			Symphony::Database()->query("DROP TABLE `tbl_oauth_token`");
 		}
 
-    }
+	}
 
 ?>

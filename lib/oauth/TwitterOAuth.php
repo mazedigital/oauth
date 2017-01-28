@@ -32,18 +32,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-require_once("BlowAuth.php");
+require_once("oAuthv1.php");
 
-class TumblrOAuth extends BlowAuth {
+class TwitterOAuth extends oAuthv1 {
 
-    private $_tumblr_oauth_base_url = 'http://www.tumblr.com/oauth';
-    private $_tumblr_api_base_url = 'http://www.tumblr.com/api';
+    private $_twitter_oauth_base_url = 'https://api.twitter.com/oauth';
+    private $_twitter_api_base_url = 'https://api.twitter.com/1.1';
 
-    private $_tumblr_request_token_uri  = '/request_token';
-    private $_tumblr_access_token_uri   = '/access_token';
-    // Tumblr does not currently support the "authenticate" method
-    private $_tumblr_authenticate_uri   = '/authorize';
-    private $_tumblr_authorize_uri      = '/authorize';
+    private $_twitter_request_token_uri  = '/request_token';
+    private $_twitter_access_token_uri   = '/access_token';
+    private $_twitter_authenticate_uri   = '/authenticate';
+    private $_twitter_authorize_uri      = '/authorize';
 
     function __construct($consumer_key, $consumer_secret, $token = null, $token_secret = null) {
         $this->consumer_key = $consumer_key;
@@ -54,12 +53,37 @@ class TumblrOAuth extends BlowAuth {
             $this->token_secret = $token_secret;
         }
 
-        $this->oauth_base_url = $this->_tumblr_oauth_base_url;
-        $this->api_base_url = $this->_tumblr_api_base_url;
-        $this->request_token_url = $this->_tumblr_oauth_base_url . $this->_tumblr_request_token_uri;
-        $this->access_token_url = $this->_tumblr_oauth_base_url . $this->_tumblr_access_token_uri;
-        $this->authenticate_url = $this->_tumblr_oauth_base_url . $this->_tumblr_authenticate_uri;
-        $this->authorize_url = $this->_tumblr_oauth_base_url . $this->_tumblr_authorize_uri;
+        $this->oauth_base_url = $this->_twitter_oauth_base_url;
+        $this->api_base_url = $this->_twitter_api_base_url;
+        $this->request_token_url = $this->_twitter_oauth_base_url . $this->_twitter_request_token_uri;
+        $this->access_token_url = $this->_twitter_oauth_base_url . $this->_twitter_access_token_uri;
+        $this->authenticate_url = $this->_twitter_oauth_base_url . $this->_twitter_authenticate_uri;
+        $this->authorize_url = $this->_twitter_oauth_base_url . $this->_twitter_authorize_uri;
+    }
+
+
+    
+    /*Facbook Version*/
+    public function getUserID(){
+        if (!isset($this->_twitter_user_details)){
+            $this->getUserDetails();
+        }
+
+        var_dump($this->_twitter_user_details);die;
+
+            die('test');
+        return (string)$this->_twitter_user_details->id;
+    }
+    
+    /*Facbeook Version*/
+    public function getUserDetails(){
+        if (isset($this->_twitter_user_details)){
+            return $this->_twitter_user_details;
+        } else {
+            $twitter_json = $this->request('account/verify_credentials.json',$object, $http_method = 'GET', $extra_params = array('include_email'=>'true','skip_status'=>'true'));
+            $this->_twitter_user_details = json_decode($twitter_json);
+            return $this->_twitter_user_details;
+        }
     }
 
 }

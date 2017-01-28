@@ -32,12 +32,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-require_once("BlowAuth.php");
+require_once("oAuthv1.php");
 
-class GoogleOAuth extends BlowAuth {
+class GoogleOAuth extends oAuthv2 {
 
     // From http://code.google.com/apis/gdata/faq.html#AuthScopes
-    const GOOGLE_ANALYTICS_API          = 'https://www.google.com/analytics/feeds/';
+    /*const GOOGLE_ANALYTICS_API          = 'https://www.google.com/analytics/feeds/';
     const GOOGLE_BASE_DATA_API          = 'http://www.google.com/base/feeds/';
     const GOOGLE_SITES_DATA_API         = 'https://sites.google.com/feeds/';
     const GOOGLE_BLOGGER_API            = 'http://www.blogger.com/feeds/';
@@ -53,12 +53,12 @@ class GoogleOAuth extends BlowAuth {
     const GOOGLE_SIDEWIKI_API           = 'http://www.google.com/sidewiki/feeds/';
     const GOOGLE_SPREADSHEETS_API       = 'https://spreadsheets.google.com/feeds/';
     const GOOGLE_WEBMASTER_TOOLS_API    = 'http://www.google.com/webmasters/tools/feeds/';
-    const GOOGLE_YOUTUBE_API            = 'http://gdata.youtube.com';
+    const GOOGLE_YOUTUBE_API            = 'http://gdata.youtube.com';*/
 
-    private $_google_oauth_base_url = 'https://www.google.com';
+    private $_google_oauth_base_url = 'https://accounts.google.com';accounts.google.com/
 
-    private $_google_request_token_uri  = '/accounts/OAuthGetRequestToken';
-    private $_google_access_token_uri   = '/accounts/OAuthGetAccessToken';
+    private $_google_access_token_uri  = 'o/oauth2/v2/auth';
+    // private $_google_access_token_uri   = '/accounts/OAuthGetAccessToken';
     private $_google_authenticate_uri   = '';
     private $_google_authorize_uri      = '/accounts/OAuthAuthorizeToken';
 
@@ -75,10 +75,16 @@ class GoogleOAuth extends BlowAuth {
 
         $this->oauth_base_url = $this->_google_oauth_base_url;
         $this->api_base_url = rtrim($SCOPE_URL, '/');
-        $this->request_token_url = $this->_google_oauth_base_url . $this->_google_request_token_uri;
+
+        // $this->request_token_url = $this->_google_oauth_base_url . $this->_google_request_token_uri;
         $this->access_token_url = $this->_google_oauth_base_url . $this->_google_access_token_uri;
         $this->authenticate_url = $this->_google_oauth_base_url . $this->_google_authenticate_uri;
         $this->authorize_url = $this->_google_oauth_base_url . $this->_google_authorize_uri;
+
+        
+        // $this->request_token_url = $this->_facebook_oauth_base_url . $this->_facebook_request_token_uri;
+        $this->access_token_url = $this->_facebook_oauth_base_url . $this->_facebook_access_token_uri;
+        $this->authenticate_url = $this->_facebook_authenticate_uri;
     }
 
 }

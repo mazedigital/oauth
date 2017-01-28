@@ -32,17 +32,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-require_once("BlowAuth.php");
+require_once("oAuthv1.php");
 
-class LinkedInOAuth extends BlowAuth {
+class TumblrOAuth extends oAuthv1 {
 
-    private $_linkedin_oauth_base_url = 'https://api.linkedin.com/uas/oauth';
-    private $_linkedin_api_base_url = 'https://api.linkedin.com/v1';
+    private $_tumblr_oauth_base_url = 'http://www.tumblr.com/oauth';
+    private $_tumblr_api_base_url = 'http://www.tumblr.com/api';
 
-    private $_linkedin_request_token_uri  = '/requestToken';
-    private $_linkedin_access_token_uri   = '/accessToken';
-    private $_linkedin_authenticate_uri   = '/authenticate';
-    private $_linkedin_authorize_uri      = '/authorize';
+    private $_tumblr_request_token_uri  = '/request_token';
+    private $_tumblr_access_token_uri   = '/access_token';
+    // Tumblr does not currently support the "authenticate" method
+    private $_tumblr_authenticate_uri   = '/authorize';
+    private $_tumblr_authorize_uri      = '/authorize';
 
     function __construct($consumer_key, $consumer_secret, $token = null, $token_secret = null) {
         $this->consumer_key = $consumer_key;
@@ -53,21 +54,13 @@ class LinkedInOAuth extends BlowAuth {
             $this->token_secret = $token_secret;
         }
 
-        $this->oauth_base_url = $this->_linkedin_oauth_base_url;
-        $this->api_base_url = $this->_linkedin_api_base_url;
-        $this->request_token_url = $this->_linkedin_oauth_base_url . $this->_linkedin_request_token_uri;
-        $this->access_token_url = $this->_linkedin_oauth_base_url . $this->_linkedin_access_token_uri;
-        $this->authenticate_url = $this->_linkedin_oauth_base_url . $this->_linkedin_authenticate_uri;
-        $this->authorize_url = $this->_linkedin_oauth_base_url . $this->_linkedin_authorize_uri;
+        $this->oauth_base_url = $this->_tumblr_oauth_base_url;
+        $this->api_base_url = $this->_tumblr_api_base_url;
+        $this->request_token_url = $this->_tumblr_oauth_base_url . $this->_tumblr_request_token_uri;
+        $this->access_token_url = $this->_tumblr_oauth_base_url . $this->_tumblr_access_token_uri;
+        $this->authenticate_url = $this->_tumblr_oauth_base_url . $this->_tumblr_authenticate_uri;
+        $this->authorize_url = $this->_tumblr_oauth_base_url . $this->_tumblr_authorize_uri;
     }
-	
-	/*Linkedin Version*/
-	public function getUserID(){
-		$linkedin_xml = $this->request('people/~:(id)',$object);
-		$xml = simplexml_load_string ($linkedin_xml);
-		// var_dump($xml->id);die;
-		return (string)$xml->id;
-	}
 
 }
 

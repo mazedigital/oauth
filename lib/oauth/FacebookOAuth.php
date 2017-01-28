@@ -33,12 +33,13 @@ require_once("oAuthv2.php");
 class FacebookOAuth extends oAuthv2 {
 
 	private $_facebook_oauth_base_url = 'https://graph.facebook.com/oauth';
-	private $_facebook_api_base_url = 'https://graph.facebook.com';
+	private $_facebook_api_base_url = 'https://graph.facebook.com/v2.7';
 
 	// private $_facebook_request_token_uri  = '/requestToken';
 	private $_facebook_access_token_uri   = '/access_token';
 	private $_facebook_authenticate_uri   = 'https://www.facebook.com/dialog/oauth';
 	private $_facebook_logout_uri = 'https://www.facebook.com/logout.php?next=';
+	private $_facebook_user_details;
 	// private $_facebook_authorize_uri	  = '/authorize';
 
 	function __construct($consumer_key, $consumer_secret, $token = null, $token_secret = null) {
@@ -59,14 +60,25 @@ class FacebookOAuth extends oAuthv2 {
 		$this->authenticate_url = $this->_facebook_authenticate_uri;
 		// $this->authorize_url = $this->_facebook_oauth_base_url . $this->_facebook_authorize_uri;
 	}
+
 	
-	
-	/*Linkedin Version*/
+	/*Facbook Version*/
 	public function getUserID(){
-		$facebook_json = $this->request('me/',$object);
-		$facebookDetails = json_decode($facebook_json);
-		// var_dump($facebookDetails->id);die;
-		return (string)$facebookDetails->id;
+		if (!isset($this->_facebook_user_details)){
+			$this->getUserDetails();
+		}
+		return (string)$this->_facebook_user_details->id;
+	}
+	
+	/*Facbeook Version*/
+	public function getUserDetails(){
+		if (isset($this->_facebook_user_details)){
+			return $this->_facebook_user_details;
+		} else {
+			$facebook_json = $this->request('me/',$object, $http_method = 'GET', $extra_params = array('fields'=>'id,name,email'));
+			$this->_facebook_user_details = json_decode($facebook_json);
+			return $this->_facebook_user_details;
+		}
 	}
 
 }

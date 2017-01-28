@@ -482,7 +482,7 @@
 						
 						$oAuthClassname= $oAuthExtension->supportedOAuth[$this->dsParamSYSTEM] .'OAuth';
 						$oAuthName = $this->dsParamSYSTEM;
-						require_once(EXTENSIONS . "/oauth/lib/blowauth/{$oAuthClassname}.php");
+						require_once(EXTENSIONS . "/oauth/lib/oauth/{$oAuthClassname}.php");
 										
 						$clientId = Symphony::Configuration()->get('client_id', $oAuthName . 'oauth');
 						$secret = Symphony::Configuration()->get('secret', $oAuthName . 'oauth');

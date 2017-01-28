@@ -32,9 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-require_once("BlowAuth.php");
+require_once("oAuthv1.php");
 
-class oAuthv2 extends BlowAuth
+class oAuthv2 extends oAuthv1
 {
 	public static $oauth_version = '2.0';
 
@@ -174,11 +174,13 @@ class oAuthv2 extends BlowAuth
 	}
 
 	/*No credentials required for 2.0 so changed with a redirect uri*/
-	public function getAuthenticateUrl($redirectUri){
+	public function getAuthenticateUrl($redirectUri,$scope){
 		$query_str = "client_id={$this->consumer_key}";
 		$query_str .= "&response_type=code";
 		$query_str .= "&redirect_uri={$redirectUri}";
-		// $query_str .= "&scope={$scope}";
+		if (!empty($scope)){
+			$query_str .= "&scope={$scope}";
+		}
 		return $this->authenticate_url . "?$query_str";
 	}
 

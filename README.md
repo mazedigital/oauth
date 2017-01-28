@@ -1,9 +1,9 @@
 # OAuth
 
-* Version: 0.1.2
+* Version: 0.2.0
 * Author: Jon Mifsud <http://jonmifsud.com>
 * Build Date: 2012-06-04
-* Requirements: Symphony 2.3
+* Requirements: Symphony 2.6.x
 
 ## Installation
 
@@ -11,6 +11,8 @@
 2. Enable the extension by selecting `OAuth` in the list and choose `Enable` from the with-selected menu, then click Apply.
 3. For Any oAuth that you intend to use add in the Application Code and Secret; and if required you can also add a scope
 4. If you would like oAuth to be used as a main-login select an oAuth Provided to be used as main - this will output an event showing if the user is logged in.
+
+Note: If you are using the Member's extension, you do not need to set the `main-login` above but users will be automatically linked to a logged in member or a new entry is created for that user. In case of different oauth accounts with the same email address, they will also be linked.
 
 ## Usage
 
@@ -26,6 +28,39 @@ When Verified the XML Element would have two parameters `logged-in` reading `yes
 
 If you would like to use data from these social networks - you are free to create datasource of type 'oAuth Remote Datasource', 
 these allow you to specify the Provider you want to use, the path to pass to the oAuth request and the xPath of the output that you want visible in your XML
+
+## Using oAuth with Members
+
+For each oAuth with which you want to support `auto registration` you will need to add an XSLT file for mapping the members data to the symphony fields. Below is an example for facebook oAuth, which is placed inside `workspace/oauth/facebook.xsl`, the node names are to match the field handles of the section in symphony, and the node values are the values you want to insert inside the members section. The data available under /data/entry varies depending on the oAuth channel and scopes which you have access to. Facebook requires additional scope request to obtain an email address.
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<xsl:stylesheet version="1.0"
+		xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+	<xsl:output method="xml"
+		doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
+		doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"
+		omit-xml-declaration="yes"
+		encoding="UTF-8"
+		indent="yes" />
+
+	<xsl:template match="/">
+		<member>
+			<first-name>
+				<xsl:value-of select='/data/entry/first-name'/>
+			</first-name>
+			<last-name>
+				<xsl:value-of select='/data/entry/last-name'/>
+			</last-name>
+			<email>
+				<xsl:value-of select='/data/entry/email'/>
+			</email>
+			<role>public</role>
+		</member>
+	</xsl:template>
+
+	</xsl:stylesheet>
+
 
 ## Important
 

@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-class BlowAuth
+class oAuthv1
 {
 	public static $oauth_version = '1.0';
 	public $signature_method = 'HMAC-SHA1';

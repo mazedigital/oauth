@@ -2,9 +2,9 @@
 <extension id="oauth" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>OAuth</name>
 	<description>Allow Users to use oAuth as a Login System and provide data-sources for login and data-retrieval. Support is currently limited for the main providers</description>
-	<repo type="github">https://github.com/jonmifsud/oauth</repo>
+	<repo type="github">https://github.com/mazedigital/oauth</repo>
 	<url type="discuss">http://symphony-cms.com/discuss/thread/88912/</url>
-	<url type="homepage">http://jonmifsud.com</url>
+	<url type="homepage">http://maze.digital</url>
 	<types>
 		<type>Third Party Integration</type>
 	</types>
@@ -16,6 +16,10 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="0.2.0" date="2016-07-08" min="2.6"> 
+			- Link oAuth Extension with Members
+			- creation of member entries using oAuth such as facebook
+		</release>
 		<release version="0.1.3" date="2012-07-24" min="2.3"> 
 			Minor Bug Fixes + Addition of an oAuth event to allow post requests
 		</release>
