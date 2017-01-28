@@ -220,7 +220,10 @@
 
 				// if (!isset($oAuthName)){
 					foreach ($this->supportedOAuth as $oAuthName => $classPrefix) {
-						$this->getOAuthAuthenticateURL($oAuthName, $result);
+						// do not show authentication details if already logged in with the particular service
+						if (isset($this->Member->cookie) && $oAuthName !== $this->Member->cookie->get('oauth')){
+							$this->getOAuthAuthenticateURL($oAuthName, $result);
+						}
 					}
 				// }
 				
