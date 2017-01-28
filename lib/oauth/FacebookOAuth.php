@@ -75,7 +75,7 @@ class FacebookOAuth extends oAuthv2 {
 		if (isset($this->_facebook_user_details)){
 			return $this->_facebook_user_details;
 		} else {
-			$facebook_json = $this->request('me/',$object, $http_method = 'GET', $extra_params = array('fields'=>'id,name,email'));
+			$facebook_json = $this->request('me/',$object, $http_method = 'GET', $extra_params = array('fields'=>'id,first_name,last_name,name,email,website,birthday,hometown,about'));
 			$this->_facebook_user_details = json_decode($facebook_json);
 			return $this->_facebook_user_details;
 		}
