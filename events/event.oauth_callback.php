@@ -89,6 +89,9 @@
 			// Build some context
 			$section = SectionManager::fetch($entry->get('section_id'));
 
+			$cookie = new Cookie('oAuthLastURL',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
+			$lastURL = $cookie->get('oAuthLastURL');
+
 			//generate parameters such as root and add into dom
 			$date = new DateTime();
 			$params = array(
@@ -107,6 +110,7 @@
 				'service' => $oAuthName,
 				'new' => $new ? 'yes' : 'no',
 				'linked' => $linked ? 'yes' : 'no',
+				'last-url' => $lastURL,
 			);
 
 			/*$datasources = explode(',',$this->datasources);
