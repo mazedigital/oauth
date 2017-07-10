@@ -89,7 +89,7 @@
 
 			if (isset($memberId)){
 				$userId = $memberId;
-			} elseif isset($params['oauth-user-id']){
+			} elseif (isset($params['oauth-user-id'])){
 				//if using main oAuth > $params['oauth-user-id'] should be set
 				$userId = $params['oauth-user-id'];
 			}
@@ -120,9 +120,15 @@
 		// rebuilding the oAuthv1 object with access token credentials enables us to
 		// finally make API calls
 		// $oauth = new $oAuthClassname($clientId, $secret, $oauth_token, $oauth_token_secret);
-		
+	
+		// get last URL 
+		$cookie = new Cookie('oAuthLastURL',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
+		$redirectUrl = $cookie->get('oAuthLastURL');
+
 		// var_dump($access_token_credentials);die;
-		$redirectUrl = $params['root'];
+		if (empty($redirectUrl)){
+			$redirectUrl = $params['root'];
+		}
 		header('Location: ' . $redirectUrl);
 		exit;
 
