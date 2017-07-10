@@ -84,7 +84,6 @@
 			if ($membersExtensionId){
 				$membersExtension = ExtensionManager::getInstance('members');
 				$memberId = $membersExtension->getMemberDriver()->getMemberID();
-				var_dump($memberId);die;
 			}
 
 			if (isset($memberId)){
