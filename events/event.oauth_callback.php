@@ -247,7 +247,7 @@
 					$memberId = $memberDriver->getMemberID();
 					if (isset($memberId) && !empty($memberId)){
 						$linked = true;
-						var_dump($memberId);die;
+						// var_dump($memberId);die;
 					}
 				}
 

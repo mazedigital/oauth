@@ -302,8 +302,10 @@
 
 			// set cookie value to last url to be used for redirects if needed. 
 			// TODO ONly set if not logged in
-			$cookie = new Cookie('oAuthLastURL',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
-			$cookie->set('oAuthLastURL',URL . $context['page']->Page());
+			if($context['page_data']['handle'] !== 'authorize'){
+				$cookie = new Cookie('oAuthLastURL',TWO_WEEKS, __SYM_COOKIE_PATH__, null, true);
+				$cookie->set('oAuthLastURL',URL . $context['page']->Page());
+			}
 		}
 		
 		public function entryPostDelete($context){
