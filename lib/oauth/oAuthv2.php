@@ -38,16 +38,17 @@ class oAuthv2 extends oAuthv1
 {
 	public static $oauth_version = '2.0';
 
+	public $oAuthHeader = false;
+	public $sendByPost = false;
+	public $jsonEncoded = false;
+
 	/*Do Not think this is required*/
 	public function getRequestToken($oauth_callback = null){
 	}
 
 	/*This is the V2 Access Token Function*/
 	public function getAccessToken($code,$redirectUri){
-		// Code should be passed to this function and is obtained from the data passed from the server
-		// $code = $_REQUEST['code'];
 		
-		// $url = 'https://github.com/login/oauth/access_token';
 		$url =$this->access_token_url;
 		$queryParams = 'client_id=' . $this->consumer_key . '&redirect_uri=' . /*urlencode($redirectUri)*/($redirectUri) . '&client_secret=' . $this->consumer_secret . '&code=' . $code . '&grant_type=authorization_code';
 		
@@ -61,9 +62,9 @@ class oAuthv2 extends oAuthv1
 		}
 		else*/ if(function_exists('curl_version')) {
 			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url . '?' . $queryParams);
+			curl_setopt($ch, CURLOPT_URL, $url );
 			// curl_setopt($ch, CURLOPT_URL, 'http://hubnet.nationalfield.org/oauth/access_token?client_id=d977b3ac9a4ea26208064c0bdcd3c7a6&redirect_uri=http://eurosouth-hub.local/authorize/nationalfield/&client_secret=4899ae4f959d02c7e1ec102e6f164f97&code=9d342cd409a6f293e96ebf84f9064f43&grant_type=authorization_code');
-			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
@@ -73,6 +74,7 @@ class oAuthv2 extends oAuthv1
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json, * /*'));
 			
 			$result = curl_exec($ch);
+
 			// var_dump (curl_error ($ch));
 			curl_close($ch);
 			// var_dump('inhere');
@@ -84,16 +86,19 @@ class oAuthv2 extends oAuthv1
 		$token=null;
 		$header=null;
 		$jsonResult = json_decode($result);
-		if ($jsonResult->access_token) return $jsonResult->access_token;		
+		if ($jsonResult->access_token) {
+			$this->token = $jsonResult->access_token;
+			return (array)$jsonResult;
+		}
 		
 		$headers = explode('&',trim($result));
+
+		$tokenDetails = array();
+
 		foreach($headers as $item) {
 			$input = str_replace('"','',$input);
 			$header = explode('=',$item);
-			if($header[0] == 'access_token') {
-				$token = $header[1];
-				break;
-			} 
+			$tokenDetails[$header[0]] = $header[1];
 		}
 		// var_dump($url . '?' . $queryParams);
 		// var_dump($headers);
@@ -103,23 +108,32 @@ class oAuthv2 extends oAuthv1
 		// var_dump($token);die;
 		// var_dump($url . '?' . $queryParams);die;
 
-		return $token;
+		return $tokenDetails;
 	}
 
 	/*Function Not Used for v2 */
 	public function request($api_method, &$ch = NULL,  $http_method = 'GET', $extra_params = array(), $POST_body = ''){
-		$params='';
-		if (isset($extra_params)) $params = http_build_query($extra_params);
+		$params= array();
+		if (isset($extra_params)) $params = $extra_params;
 		
 		//remove any '/' prior to method to avioid redirects
-		if (strpos($api_method,'/')==0){
+		if (strpos($api_method,'/')===0){
 			$api_method = substr($api_method,1);
 		}
 		
-		$request_url = "{$this->api_base_url}/{$api_method}?access_token={$this->token}"; 
-		if ($http_method == 'GET') $request_url .= '&'. $params;
-		// var_dump($request_url);die;
-		
+		$request_url = "{$this->api_base_url}/{$api_method}";
+		if (!$this->oAuthHeader) $request_url .="?access_token={$this->token}"; 
+
+		if ($http_method == 'GET'){
+			$params = http_build_query($params);
+			$request_url .= '&'. $params;
+		}
+
+		// if jsonencoded
+		if ($this->jsonEncoded){
+			$params = json_encode($params);
+		}
+
 		if(function_exists('curl_version')) {
 			if (!isset($ch))
 				$ch = curl_init();
@@ -130,17 +144,17 @@ class oAuthv2 extends oAuthv1
 			curl_setopt($ch, CURLOPT_URL, $request_url);
 			// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryParams);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE); 
 			
 			//WARNING: this would prevent curl from detecting a 'man in the middle' attack
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
 			curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+
+			if ($this->oAuthHeader){
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: OAuth '.$this->token));
+			}
 			// curl_setopt ($ch, CURLINFO_HEADER_OUT, TRUE); 
 			$result = curl_exec($ch);
-			// if ($http_method == 'POST'){
-				// var_dump(curl_getinfo($ch, CURLINFO_HEADER_OUT));die;}
-			// var_dump (curl_error ($ch));
-			// curl_close($ch);
 		}
 		else {
 			echo 'Failed to get HTTP.';

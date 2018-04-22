@@ -214,7 +214,7 @@
 			} else {
 				$oauth = new $oAuthClassname($clientId, $secret, $oauth_token, $oauth_token_secret); 
 				$access_token_credentials = $oauth->getAccessToken($params['url-code'],$params['current-url'] . '/');
-				$oauth_token = $access_token_credentials;
+				$oauth_token = $access_token_credentials['access_token'];
 				$oauth_token_secret = null;
 			}
 			
@@ -257,10 +257,18 @@
 				}
 
 				$userId = $oauth->getUserID();
+				$orgId = $oauth->getOrgID();
 
 				$memberDriver->initialiseCookie();
 				$memberDriver->cookie->set('oauth', $oAuthName);
-				$memberDriver->cookie->set('oauth-user-id', $userId);
+
+				if (isset($userId)){
+					$memberDriver->cookie->set('oauth-user-id', $userId);
+				}
+
+				if (isset($orgId)){
+					$memberDriver->cookie->set('oauth-organisation-id', $orgId);
+				}
 
 
 							/*$userData = $oauth->getUserDetails();
@@ -272,7 +280,7 @@
 
 				// var_dump($userId);die('here');
 
-				if (!isset($userId) || empty($userId)){
+				if ((!isset($userId) || empty($userId)) && (!isset($orgId) || empty($orgId))){
 					//need to ask for a re-login as token is invalid
 					return;
 				}
@@ -280,114 +288,149 @@
 				$new = false;
 
 				//TODO Make Sure memberid is set
-				if (!isset($memberId) || empty($memberId)){
-					if (isset($membersExtensionId)){
-						// check if this user already has an account
-						$memberId = Symphony::Database()->fetchVar('member_id',0,"SELECT member_id FROM `tbl_oauth_token` WHERE user_id='{$userId}' AND `system` = '{$oAuthName}';");
-						
-						// or create a new entry for this user
-						if (!isset($memberId) || empty($memberId)){
-
-							//need to create a new member entry
-
-							$userData = $oauth->getUserDetails();
-
-							$xml = new XMLElement('entry');
-							General::array_to_xml($xml,(array)$userData);
-
-							$xml = new XMLElement('data',$xml);
-
-							$dom = new DOMDocument();
-							$dom->strictErrorChecking = false;
-							$dom->loadXML($xml->generate(true));
-
-							$XSLTfilename = WORKSPACE . '/oauth/'. $oAuthName . '.xsl';
-							if (file_exists($XSLTfilename)) {
-								$XSLProc = new XsltProcessor;
-
-								$xslt = new DomDocument;
-								$xslt->load($XSLTfilename);
-
-								$XSLProc->importStyleSheet($xslt);
-
-								// Set some context
-								/*$XSLProc->setParameter('', array(
-									'section-handle' => $section->get('handle'),
-									'entry-id' => $entry->get('id')
-								));*/
-
-								$temp = $XSLProc->transformToDoc($dom);
-
-								if ($temp instanceof DOMDocument) {
-									$dom = $temp;
-								}
-							}
+				if (empty($orgId)){
+					if (!isset($memberId) || empty($memberId)){
+						if (isset($membersExtensionId)){
+							// check if this user already has an account
+							$memberId = Symphony::Database()->fetchVar('member_id',0,"SELECT member_id FROM `tbl_oauth_token` WHERE user_id='{$userId}' AND `system` = '{$oAuthName}';");
 							
-							$dataToInsert = XMLElement::convertFromDOMDocument('data',$dom);
-
-							$children = $dataToInsert->getChildren();
-
-							//get section and we can start filling in the data
-							$data = array();
-
-							foreach ($children as $key => $child) {
-								$data[$child->getName()] = $child->getValue();
-							}
-
-							//check if there is already a user with the same email address
-
-							$memberSections = extension_Members::initialiseMemberSections();
-							$memberSection = current($memberSections);
-
-							$emailField = current(FieldManager::fetch(null,$memberSection->getData()->id,'ASC','sortorder','memberemail'));
-
-							$email = $data[$emailField->get('element_name')];
-
-							if (isset($email)){
-								$memberId = Symphony::Database()->fetchVar('entry_id',0,"SELECT entry_id FROM `tbl_entries_data_{$emailField->get('id')}` WHERE value='{$email}';");
-							}
-
-
+							// or create a new entry for this user
 							if (!isset($memberId) || empty($memberId)){
-								// if still no member id found proceed with creating a new one
 
-								if (!$signUp){
-									$redirectUrl = $params['root'] . '?no-account';
-									header('Location: ' . $redirectUrl);
-									exit;
+								//need to create a new member entry
+
+								$userData = $oauth->getUserDetails();
+
+								$xml = new XMLElement('entry');
+								General::array_to_xml($xml,(array)$userData);
+
+								$xml = new XMLElement('data',$xml);
+
+								$dom = new DOMDocument();
+								$dom->strictErrorChecking = false;
+								$dom->loadXML($xml->generate(true));
+
+								$XSLTfilename = WORKSPACE . '/oauth/'. $oAuthName . '.xsl';
+								if (file_exists($XSLTfilename)) {
+									$XSLProc = new XsltProcessor;
+
+									$xslt = new DomDocument;
+									$xslt->load($XSLTfilename);
+
+									$XSLProc->importStyleSheet($xslt);
+
+									// Set some context
+									/*$XSLProc->setParameter('', array(
+										'section-handle' => $section->get('handle'),
+										'entry-id' => $entry->get('id')
+									));*/
+
+									$temp = $XSLProc->transformToDoc($dom);
+
+									if ($temp instanceof DOMDocument) {
+										$dom = $temp;
+									}
+								}
+								
+								$dataToInsert = XMLElement::convertFromDOMDocument('data',$dom);
+
+								$children = $dataToInsert->getChildren();
+
+								//get section and we can start filling in the data
+								$data = array();
+
+								foreach ($children as $key => $child) {
+									$data[$child->getName()] = $child->getValue();
 								}
 
-								$new = true;
+								//check if there is already a user with the same email address
 
-								$entry = EntryManager::create();
-								$entry->set('section_id',$memberSection->getData()->id);
-								$entry->set('author_id',1);
+								$memberSections = extension_Members::initialiseMemberSections();
+								$memberSection = current($memberSections);
 
-								$entry->checkPostData($data,$errors);
+								$emailField = current(FieldManager::fetch(null,$memberSection->getData()->id,'ASC','sortorder','memberemail'));
 
-								if (empty($errors)){
-									$entry->setDataFromPost($data,$errors);
-									$entry->commit();
-									$memberId = $entry->get('id');
-								} else {
-									//log errors
-									var_dump($entry->getData());
-									var_dump($errors);die;
+								$email = $data[$emailField->get('element_name')];
+
+								if (isset($email)){
+									$memberId = Symphony::Database()->fetchVar('entry_id',0,"SELECT entry_id FROM `tbl_entries_data_{$emailField->get('id')}` WHERE value='{$email}';");
 								}
+
+
+								if (!isset($memberId) || empty($memberId)){
+									// if still no member id found proceed with creating a new one
+
+									if (!$signUp){
+										$redirectUrl = $params['root'] . '?no-account';
+										header('Location: ' . $redirectUrl);
+										exit;
+									}
+
+									$new = true;
+
+									$entry = EntryManager::create();
+									$entry->set('section_id',$memberSection->getData()->id);
+									$entry->set('author_id',1);
+
+									$entry->checkPostData($data,$errors);
+
+									if (empty($errors)){
+										$entry->setDataFromPost($data,$errors);
+										$entry->commit();
+										$memberId = $entry->get('id');
+									} else {
+										//log errors
+										var_dump($entry->getData());
+										var_dump($errors);die;
+									}
+								}
+
 							}
-
 						}
 					}
+
+					if (empty($memberId) && empty($userId)){
+						//do not save if no member id for now
+						return;
+					}
+					$fields = array('member_id'=>$memberId,'user_id'=>$userId,'system'=>$oAuthName,'token'=>$oauth_token,'token_secret'=>$oauth_token_secret);
+
+					if (isset($access_token_credentials['endpoint'])){
+						$fields['endpoint'] = $access_token_credentials['endpoint'];
+					}
+
+					if (isset($access_token_credentials['expires_in'])){
+						$fields['expires'] = time() + $access_token_credentials['expires_in'];
+					}
+
+					if (isset($access_token_credentials['refresh_token'])){
+						$fields['refresh_token'] = $access_token_credentials['refresh_token'];
+					}
+
+					Symphony::Database()->insert($fields,'tbl_oauth_token',true);
+				} else {
+
+					// die('store org token');
+
+					$entryID = $memberDriver->cookie->get('company');
+
+					$fields = array('member_id'=>$entryID,'user_id'=>$orgId,'system'=>$oAuthName,'token'=>$oauth_token,'token_secret'=>$oauth_token_secret);
+
+					if (isset($access_token_credentials['endpoint'])){
+						$fields['endpoint'] = $access_token_credentials['endpoint'];
+					}
+
+					if (isset($access_token_credentials['expires_in'])){
+						$fields['expires'] = time() + $access_token_credentials['expires_in'];
+					}
+
+					if (isset($access_token_credentials['refresh_token'])){
+						$fields['refresh_token'] = $access_token_credentials['refresh_token'];
+					}
+
+					Symphony::Database()->insert($fields,'tbl_oauth_token',true);
 				}
 
-				if (empty($memberId) && empty($userId)){
-					//do not save if no member id for now
-					return;
-				}
-
-				//we gotta store these in db
-				$fields = array('member_id'=>$memberId,'user_id'=>$userId,'system'=>$oAuthName,'token'=>$oauth_token,'token_secret'=>$oauth_token_secret);
-				Symphony::Database()->insert($fields,'tbl_oauth_token',true);
 			}
 
 			//TODO If user OauthMember trigger a 'login' or 'link' to existing member entry

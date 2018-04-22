@@ -35,6 +35,7 @@
 										'twitter' => 'Twitter',
 										'nationalfield' => 'NationalField',
 										'google' => 'Google',
+										'deputy' => 'Deputy',
 										'tumblr' => 'Tumblr');
 	
 		/*
@@ -165,7 +166,16 @@
 			} else {
 				//else get from db
 				$params = Symphony::Engine()->Page()->Params();
-				$query = "SELECT `token`,`token_secret` FROM `tbl_oauth_token` where `user_id`='{$params['oauth-user-id']}' and `system`='{$system}'";
+
+				$orgID = $this->Member->cookie->get('company');
+
+				if (isset($params['oauth-user-id'])){
+					$query = "SELECT `token`,`token_secret` FROM `tbl_oauth_token` where `user_id` = {$params['oauth-user-id']}' and `system`='{$system}'";
+				} else if (isset($orgID)) {
+					$query = "SELECT `token`,`token_secret` FROM `tbl_oauth_token` where `member_id` = '{$orgID}' and `system`='{$system}'";
+				} else {
+					return null;
+				}
 				$row = Symphony::Database()->fetchRow(0,$query);
 				// var_dump($row);die;//probably check if secret exists if null return just token else array compatible with others
 				$token = $row['token'];

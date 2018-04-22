@@ -48,22 +48,25 @@
 
 			$memberLoginInfo = $context['wrapper']->getChildByName('member-login-info',0);
 
-			if ($oAuthName){
-
-				$memberLoginInfo->setAttribute('oauth-service',$oAuthName);
-
-			} 
-
 			$memberID = $memberLoginInfo->getAttribute('id');
-			if ($memberID){
 
-				$oAuthLogins = Symphony::Database()->fetch("SELECT * FROM tbl_oauth_token WHERE `member_id` IN ({$memberID})");
+			$orgID = $this->cookie->get('company');
+
+			if ($memberID || $orgID){
+
+				$oAuthLogins = Symphony::Database()->fetch("SELECT * FROM tbl_oauth_token WHERE `member_id` IN ({$memberID},{$orgID})");
 
 				$authenticatedWith = new XMLElement('authenticated-with');
 				$memberLoginInfo->appendChild($authenticatedWith);
 
+				if (empty($context['params'])){
+					$context['params'] = array();
+				}
+
 				foreach ($oAuthLogins as $key => $value) {
-					$authenticatedWith->appendChild( new XMLElement('service',$value['system']));
+					$authenticatedWith->appendChild( new XMLElement('service',$value['system'],array('token'=>$value['token'])));
+
+					Symphony::Engine()->Page()->_param['oauth-'.$value['system'].'-token'] = $value['token'];
 				}
 			}
 

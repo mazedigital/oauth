@@ -7,6 +7,8 @@
 
 		private static $url_result = null;
 
+		public $dsFILTERS = array();
+
 		public static function getName() {
 			return __('oAuthRemote Datasource');
 		}
@@ -199,7 +201,8 @@
 					array('linkedin', $settings[self::getClass()]['system'] == 'linkedin', 'LinkedIn'),
 					array('nationalfield', $settings[self::getClass()]['system'] == 'nationalfield', 'NationalField'),
 					array('twitter', $settings[self::getClass()]['system'] == 'twitter', 'Twitter'),
-					array('facebook', $settings[self::getClass()]['system'] == 'facebook', 'Facebook')
+					array('facebook', $settings[self::getClass()]['system'] == 'facebook', 'Facebook'),
+					array('deputy', $settings[self::getClass()]['system'] == 'deputy', 'Deputy')
 				))
 			);
 			if(isset($errors[self::getClass()]['system'])) $group->appendChild(Widget::Error($label, $errors[self::getClass()]['system']));
@@ -469,6 +472,7 @@
 					if(Mutex::acquire($cache_id, $this->dsParamTIMEOUT, TMP) || true) {
 						$oAuthExtension = ExtensionManager::create('oauth');
 						$accessToken = $oAuthExtension->getAccessToken($this->dsParamSYSTEM);
+
 						$token = $accessToken;
 						$token_secret = null;
 						if (is_array($accessToken) && $this->dsParamSYSTEM=='linkedin'){
@@ -497,7 +501,7 @@
 						
 						//extract url params out of path
 						$path = explode('?',$this->dsParamPATH);
-						$params = array();
+						$params = $this->dsFILTERS;
 						if (!empty($path[1])){
 							$parts = explode('&',$path[1]);
 							foreach ($parts as $part){
@@ -505,7 +509,10 @@
 								$params[$queryString[0]]=$queryString[1];
 							}
 						}
-						$data = $oauth->request($path[0],$ch,'GET',$params);
+
+						$method = $oauth->sendByPost ? 'POST' : 'GET';
+
+						$data = $oauth->request($path[0],$ch,$method,$params);
 						//TODO handling of 400 Token Expired errors - to obtain new-token and re-direct to the correct page
 						// var_dump($data);die;
 						/*
